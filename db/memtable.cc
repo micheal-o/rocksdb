@@ -122,6 +122,7 @@ MemTable::MemTable(const InternalKeyComparator& cmp,
       approximate_memory_usage_(0),
       memtable_max_range_deletions_(
           mutable_cf_options.memtable_max_range_deletions) {
+  ROCKS_LOG_INFO(moptions_.info_log, "[Micheal_Log] MemTable: Beginning constructor");
   UpdateFlushState();
   // something went wrong if we need to flush before inserting anything
   assert(!ShouldScheduleFlush());
@@ -134,6 +135,7 @@ MemTable::MemTable(const InternalKeyComparator& cmp,
                          6 /* hard coded 6 probes */,
                          moptions_.memtable_huge_page_size, ioptions.logger));
   }
+  ROCKS_LOG_INFO(moptions_.info_log, "[Micheal_Log] MemTable: Creating FragmentedRangeTombstoneListCache");
   // Initialize cached_range_tombstone_ here since it could
   // be read before it is constructed in MemTable::Add(), which could also lead
   // to a data race on the global mutex table backing atomic shared_ptr.
@@ -152,6 +154,7 @@ MemTable::MemTable(const InternalKeyComparator& cmp,
   }
   const Comparator* ucmp = cmp.user_comparator();
   assert(ucmp);
+  ROCKS_LOG_INFO(moptions_.info_log, "[Micheal_Log] MemTable: Obtaining timestamp_size");
   ts_sz_ = ucmp->timestamp_size();
   persist_user_defined_timestamps_ = ioptions.persist_user_defined_timestamps;
 }

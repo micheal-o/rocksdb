@@ -400,7 +400,8 @@ std::string SkipListFactory::GetId() const {
 
 MemTableRep* SkipListFactory::CreateMemTableRep(
     const MemTableRep::KeyComparator& compare, Allocator* allocator,
-    const SliceTransform* transform, Logger* /*logger*/) {
+    const SliceTransform* transform, Logger* logger) {
+  ROCKS_LOG_INFO(logger, "[Micheal_Log] SkipListFactory: Creating SkipListRep");
   return new SkipListRep(compare, allocator, transform, lookahead_);
 }
 
