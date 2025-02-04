@@ -88,6 +88,11 @@ endif
 
 $(info $$DEBUG_LEVEL is $(DEBUG_LEVEL), $$LIB_MODE is $(LIB_MODE))
 
+# for antithesis
+$(info Adding antithesis include path)
+CFLAGS += -I/home/micheal.okutubo/antithesis-sdk-cpp/
+CXXFLAGS += -I/home/micheal.okutubo/antithesis-sdk-cpp/
+
 # Detect what platform we're building on.
 # Export some common variables that might have been passed as Make variables
 # instead of environment variables.
@@ -328,8 +333,12 @@ endif
 
 ifeq ($(LIB_MODE),shared)
 # So that binaries are executable from build location, in addition to install location
-EXEC_LDFLAGS += -Wl,-rpath -Wl,'$$ORIGIN'
+# Also add antithesis linker option requirement
+$(info Adding antithesis linker option)
+EXEC_LDFLAGS += -Wl,-rpath -Wl,'$$ORIGIN' -Wl,--build-id
 endif
+
+$(info $$CXX flag value $(CXX))
 
 ifeq ($(PLATFORM), OS_MACOSX)
 ifeq ($(ARCHFLAG), -arch arm64)
@@ -445,7 +454,9 @@ ifeq ($(PLATFORM), OS_AIX)
 	PLATFORM_CXXFLAGS += -I$(GTEST_DIR)
 else
 	PLATFORM_CCFLAGS += -isystem $(GTEST_DIR)
-	PLATFORM_CXXFLAGS += -isystem $(GTEST_DIR)
+	# Add antithesis header path
+	# $(info Adding antithesis header path in platform specific)
+	PLATFORM_CXXFLAGS += -isystem $(GTEST_DIR) -I /home/micheal.okutubo/antithesis-sdk-cpp/
 endif
 
 # This provides a Makefile simulation of a Meta-internal folly integration.
@@ -2449,7 +2460,8 @@ ifeq ($(JAVA_HOME),)
 endif
 	$(AM_V_GEN)cd java; $(MAKE) javalib;
 	$(AM_V_at)rm -f ./java/target/$(ROCKSDBJNILIB)
-	$(AM_V_at)$(CXX) $(CXXFLAGS) -I./java/. -I./java/rocksjni $(JAVA_INCLUDE) $(ROCKSDB_PLUGIN_JNI_CXX_INCLUDEFLAGS) -shared -fPIC -o ./java/target/$(ROCKSDBJNILIB) $(ALL_JNI_NATIVE_SOURCES) $(LIB_OBJECTS) $(JAVA_LDFLAGS) $(COVERAGEFLAGS)
+	$(info $$CXX flag value $(CXX))
+	$(AM_V_at)$(CXX) $(CXXFLAGS) -I./java/. -I./java/rocksjni -I /home/micheal.okutubo/antithesis-sdk-cpp/ $(JAVA_INCLUDE) $(ROCKSDB_PLUGIN_JNI_CXX_INCLUDEFLAGS) -shared -fPIC -o ./java/target/$(ROCKSDBJNILIB) $(ALL_JNI_NATIVE_SOURCES) $(LIB_OBJECTS) $(JAVA_LDFLAGS) $(COVERAGEFLAGS) -fsanitize-coverage=trace-pc-guard -g -Wl,--build-id
 	$(AM_V_at)cd java; $(JAR_CMD) -cf target/$(ROCKSDB_JAR) HISTORY*.md
 	$(AM_V_at)cd java/target; $(JAR_CMD) -uf $(ROCKSDB_JAR) $(ROCKSDBJNILIB)
 	$(AM_V_at)cd java/target/classes; $(JAR_CMD) -uf ../$(ROCKSDB_JAR) org/rocksdb/*.class org/rocksdb/util/*.class
