@@ -2319,7 +2319,11 @@ Status DBImpl::FlushMemTable(ColumnFamilyData* cfd,
 
     if (!cfd->mem()->IsEmpty() || !cached_recoverable_state_empty_.load() ||
         IsRecoveryFlush(flush_reason)) {
+      ROCKS_LOG_INFO(immutable_db_options_.info_log, "[Micheal_Log] FlushMemTable: Starting SwitchMemtable for column family: %s",
+                              cfd->GetName().c_str());
       s = SwitchMemtable(cfd, &context);
+      ROCKS_LOG_INFO(immutable_db_options_.info_log, "[Micheal_Log] FlushMemTable: Finished SwitchMemtable for column family: %s",
+                              cfd->GetName().c_str());
     }
     const uint64_t flush_memtable_id = std::numeric_limits<uint64_t>::max();
     if (s.ok()) {
@@ -2353,7 +2357,11 @@ Status DBImpl::FlushMemTable(ColumnFamilyData* cfd,
                            "Force flushing stats CF with manual flush of %s "
                            "to avoid holding old logs",
                            cfd->GetName().c_str());
+            ROCKS_LOG_INFO(immutable_db_options_.info_log, "[Micheal_Log] FlushMemTable: Starting second SwitchMemtable for column family: %s",
+                                    cfd->GetName().c_str());
             s = SwitchMemtable(cfd_stats, &context);
+            ROCKS_LOG_INFO(immutable_db_options_.info_log, "[Micheal_Log] FlushMemTable: Finished second SwitchMemtable for column family: %s",
+                                    cfd->GetName().c_str());
             FlushRequest req{flush_reason, {{cfd_stats, flush_memtable_id}}};
             flush_reqs.emplace_back(std::move(req));
             memtable_ids_to_wait.emplace_back(

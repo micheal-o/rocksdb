@@ -11,6 +11,7 @@
 #include "rocksdb/memtablerep.h"
 #include "rocksdb/utilities/options_type.h"
 #include "util/string_util.h"
+#include "logging/logging.h"
 
 namespace ROCKSDB_NAMESPACE {
 namespace {
@@ -400,7 +401,8 @@ std::string SkipListFactory::GetId() const {
 
 MemTableRep* SkipListFactory::CreateMemTableRep(
     const MemTableRep::KeyComparator& compare, Allocator* allocator,
-    const SliceTransform* transform, Logger* /*logger*/) {
+    const SliceTransform* transform, Logger* logger) {
+  ROCKS_LOG_INFO(logger, "[Micheal_Log] SkipListFactory: Creating SkipListRep");
   return new SkipListRep(compare, allocator, transform, lookahead_);
 }
 
