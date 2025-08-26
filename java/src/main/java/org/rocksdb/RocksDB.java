@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import org.rocksdb.Range;
 import org.rocksdb.util.Environment;
 
 /**
@@ -53,12 +54,14 @@ public class RocksDB extends RocksObject {
   @SuppressWarnings("PMD.EmptyCatchBlock")
   public static void loadLibrary() {
     if (libraryLoaded.get() == LibraryState.LOADED) {
+      System.out.println("ES-SH - Library already loaded, exiting");
       return;
     }
 
     if (libraryLoaded.compareAndSet(LibraryState.NOT_LOADED,
         LibraryState.LOADING)) {
       final String tmpDir = System.getenv("ROCKSDB_SHAREDLIB_DIR");
+      System.out.println("ES-SH - ROCKSDB_SHAREDLIB_DIR = " + tmpDir);
       // loading possibly necessary libraries.
       for (final CompressionType compressionType : CompressionType.values()) {
         try {
@@ -67,6 +70,7 @@ public class RocksDB extends RocksObject {
           }
         } catch (final UnsatisfiedLinkError e) {
           // since it may be optional, we ignore its loading failure here.
+          System.out.println("ES-SH - UnsatisfiedLinkError for " + compressionType.getLibraryName());
         }
       }
       try {

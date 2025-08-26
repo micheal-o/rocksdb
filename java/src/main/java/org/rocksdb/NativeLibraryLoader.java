@@ -59,27 +59,33 @@ public class NativeLibraryLoader {
   public synchronized void loadLibrary(final String tmpDir) throws IOException {
     try {
       // try dynamic library
+      System.out.println("ES-SH - Try to dynamically load " + sharedLibraryName);
       System.loadLibrary(sharedLibraryName);
       return;
     } catch (final UnsatisfiedLinkError ule) {
       // ignore - try from static library
+      System.out.println("ES-SH - Dynamic load failed with: " + ule.getMessage());
     }
 
     try {
       // try static library
+      System.out.println("ES-SH - Try to statically load " + jniLibraryName);
       System.loadLibrary(jniLibraryName);
       return;
     } catch (final UnsatisfiedLinkError ule) {
       // ignore - then try static library fallback or from jar
+      System.out.println("ES-SH - Static load failed with: " + ule.getMessage());
     }
 
     if (fallbackJniLibraryName != null) {
       try {
         // try static library fallback
+        System.out.println("ES-SH - Try static library fallback load: " + fallbackJniLibraryName);
         System.loadLibrary(fallbackJniLibraryName);
         return;
       } catch (final UnsatisfiedLinkError ule) {
         // ignore - then try from jar
+        System.out.println("ES-SH - Static library fallback load failed with: " + ule.getMessage());
       }
     }
 
@@ -104,7 +110,9 @@ public class NativeLibraryLoader {
   void loadLibraryFromJar(final String tmpDir)
       throws IOException {
     if (!initialized) {
-      System.load(loadLibraryFromJarToTemp(tmpDir).getAbsolutePath());
+      String t = loadLibraryFromJarToTemp(tmpDir).getAbsolutePath();
+      System.out.println("ES-SH - After loading to temp, load " + t);
+      System.load(t);
       initialized = true;
     }
   }
@@ -113,6 +121,11 @@ public class NativeLibraryLoader {
     // create a temporary file to copy the library to
     final File temp;
     if (tmpDir == null || tmpDir.isEmpty()) {
+      System.out.println("ES-SH - tmpDir null or empty, so creating tmp file with prefix/suffix " + tempFilePrefix + "/" + tempFileSuffix);
+      String defTempPath = System.getProperty("java.io.tmpdir");
+      File defTempDir = new File(defTempPath);
+      System.out.println("ES-SH - Using default tmp dir: " + defTempPath + ", exists: " + defTempDir.exists());
+      System.out.println("ES-SH - writable: " + defTempDir.canWrite());
       temp = File.createTempFile(tempFilePrefix, tempFileSuffix);
     } else {
       final File parentDir = new File(tmpDir);
@@ -128,6 +141,8 @@ public class NativeLibraryLoader {
       if (!temp.createNewFile()) {
         throw new RuntimeException("File: " + temp.getAbsolutePath() + " could not be created.");
       }
+
+      System.out.println("ES-SH - created lib using passedin tmpDir/libname: " + tmpDir + "/" + libraryFileName);
     }
     if (temp.exists()) {
       temp.deleteOnExit();
@@ -139,7 +154,9 @@ public class NativeLibraryLoader {
 
   @SuppressWarnings({"PMD.UseProperClassLoader", "PMD.UseTryWithResources"})
   File loadLibraryFromJarToTemp(final String tmpDir) throws IOException {
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream(jniLibraryFileName)) {
+    ClassLoader cl = getClass().getClassLoader();
+    System.out.println("ES-SH - Using classloader " + cl + " to load " + jniLibraryFileName);
+    try (InputStream is = cl.getResourceAsStream(jniLibraryFileName)) {
       if (is != null) {
         final File temp = createTemp(tmpDir, jniLibraryFileName);
         Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
